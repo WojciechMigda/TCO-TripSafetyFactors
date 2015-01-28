@@ -8,9 +8,8 @@ set( _ECLIPSE_VERSION 3.8 )
 
 set( CMAKE_CXX_COMPILER_ARG1 -std=c++11 ) ### for Eclipse's discovery extra arguments
 
-#add_definitions( -O0 -ggdb -std=c++11 -Wall -pedantic )
+add_definitions( -O0 -ggdb -std=c++11 -Wall -pedantic )
 #add_definitions( -O2 -std=c++11 -Wall -g -pedantic )
-add_definitions( -O2 -std=c++11 -Wall -g -pedantic -fopenmp )
 #add_definitions( -O2 -std=c++0x -ggdb -D__GXX_EXPERIMENTAL_CXX0X__ )
 
 ################################################################################
