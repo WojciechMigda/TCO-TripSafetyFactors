@@ -32,6 +32,8 @@
 #include <random>
 #include <algorithm>
 #include <cassert>
+#include <valarray>
+#include <iterator>
 
 int main(int argc, char **argv)
 {
@@ -61,7 +63,44 @@ int main(int argc, char **argv)
     std::vector<std::string> test_data(vcsv.cbegin(), vcsv.cbegin() + PIVOT);
     std::vector<std::string> train_data(vcsv.cbegin() + PIVOT, vcsv.cend());
 
-    for (auto & item : train_data)
+    const std::size_t N = std::count_if(test_data.cbegin(), test_data.cend(),
+        [](const std::string & line) -> bool
+        {
+            const std::size_t pos = line.rfind(',');
+            assert(pos != std::string::npos);
+            const int last_val = std::atoi(line.c_str() + pos + 1);
+            return last_val > 0;
+        }
+    );
+    std::cout << "N: " << N << std::endl;
+
+    const std::size_t M = std::count_if(test_data.cbegin(), test_data.cend(),
+        [](const std::string & line) -> bool
+        {
+            const std::size_t pos = line.rfind(',');
+            assert(pos != std::string::npos);
+            const int last_val = std::atoi(line.c_str() + pos + 1);
+            return last_val > 1;
+        }
+    );
+    std::cout << "M: " << M << std::endl;
+
+    std::sort(test_data.begin(), test_data.end(),
+        [](const std::string & lhs, const std::string & rhs) -> bool
+        {
+            const std::size_t lpos = lhs.rfind(',');
+            const std::size_t rpos = rhs.rfind(',');
+            assert(lpos != std::string::npos);
+            assert(rpos != std::string::npos);
+
+            const int last_l_val = std::atoi(lhs.c_str() + lpos + 1);
+            const int last_r_val = std::atoi(rhs.c_str() + rpos + 1);
+
+            return last_l_val > last_r_val;
+        }
+    );
+
+    for (auto & item : test_data)
     {
         constexpr std::size_t TEST_NCOL{29};
         std::size_t ncomma{0};
@@ -83,8 +122,50 @@ int main(int argc, char **argv)
         assert(std::count(item.cbegin(), item.cend(), ',') == (TEST_NCOL - 1));
     }
 
+    ////////////////////////////////////////////////////////////////////////////
     TripSafetyFactors worker;
-    std::vector<int> prediction = worker.predict(test_data, train_data);
+    std::vector<int> prediction = worker.predict(train_data, test_data);
+    ////////////////////////////////////////////////////////////////////////////
+
+    std::valarray<float> scores(test_data.size());
+    std::size_t index = 1;
+    std::generate(std::begin(scores), std::end(scores),
+        [&N, &index]()
+        {
+            return std::max((2.0f * N - index++) / (2 * N), 0.0f);
+        }
+    );
+    std::valarray<float> bonuses(test_data.size());
+    index = 1;
+    std::generate(std::begin(bonuses), std::end(bonuses),
+        [&M, &index]()
+        {
+            return std::max(0.3f * (2.0f * M - index++) / (2 * M), 0.0f);
+        }
+    );
+
+    const float MAX_POINTS =
+        std::accumulate(std::begin(scores), std::begin(scores) + N, 0.0f) +
+        std::accumulate(std::begin(bonuses), std::begin(bonuses) + M, 0.0f);
+
+    const float POINTS =
+        std::accumulate(prediction.cbegin(), prediction.cbegin() + N, 0.0f,
+            [&scores](const float & a, const int & i)
+            {
+                return scores[i - 1] + a;
+            }
+        ) +
+        std::accumulate(prediction.cbegin(), prediction.cbegin() + M, 0.0f,
+            [&bonuses](const float & a, const int & i)
+            {
+                return bonuses[i - 1] + a;
+            }
+        );
+
+    std::cout << "MAX_POINTS: " << MAX_POINTS << std::endl;
+    std::cout << "POINTS: " << POINTS << std::endl;
+
+    std::cout << "SCORE: " << (int)std::round(1000000 * POINTS / MAX_POINTS) << std::endl;
 
     return 0;
 }

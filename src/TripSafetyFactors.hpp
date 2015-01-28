@@ -43,15 +43,16 @@ TripSafetyFactors::predict(
 {
     std::vector<int> result(test_data.size());
 
-    std::cerr << train_data[0] << std::endl;
-    std::cerr << train_data[1] << std::endl;
-    std::cerr << train_data.back() << std::endl;
-    std::cerr << std::endl;
-    std::cerr << test_data[0] << std::endl;
-    std::cerr << test_data[1] << std::endl;
-    std::cerr << test_data.back() << std::endl;
+//    std::cerr << train_data[0] << std::endl;
+//    std::cerr << train_data[1] << std::endl;
+//    std::cerr << train_data.back() << std::endl;
+//    std::cerr << std::endl;
+//    std::cerr << test_data[0] << std::endl;
+//    std::cerr << test_data[1] << std::endl;
+//    std::cerr << test_data.back() << std::endl;
 
     std::iota(result.begin(), result.end(), 1);
+//    std::random_shuffle(result.begin(), result.end());
 
     return result;
 }
