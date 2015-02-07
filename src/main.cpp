@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     const int SEED = (argc == 2 ? std::atoi(argv[1]) : 1);
     const char * FNAME = (argc == 3 ? argv[2] : "../data/exampleData.csv");
 
-    std::cout << "SEED: " << SEED << ", CSV: " << FNAME << std::endl;
+    std::cerr << "SEED: " << SEED << ", CSV: " << FNAME << std::endl;
 
     std::ifstream fcsv(FNAME);
     std::vector<std::string> vcsv;
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     }
     fcsv.close();
 
-    std::cout << "Read " << vcsv.size() << " lines" << std::endl;
+    std::cerr << "Read " << vcsv.size() << " lines" << std::endl;
 
     {
         std::mt19937 g(SEED);
@@ -60,8 +60,8 @@ int main(int argc, char **argv)
 
     const std::size_t PIVOT = 0.67 * vcsv.size();
 
-    std::vector<std::string> test_data(vcsv.cbegin(), vcsv.cbegin() + PIVOT);
-    std::vector<std::string> train_data(vcsv.cbegin() + PIVOT, vcsv.cend());
+    std::vector<std::string> train_data(vcsv.cbegin(), vcsv.cbegin() + PIVOT);
+    std::vector<std::string> test_data(vcsv.cbegin() + PIVOT, vcsv.cend());
 
     const std::size_t N = std::count_if(test_data.cbegin(), test_data.cend(),
         [](const std::string & line) -> bool
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
             return last_val > 0;
         }
     );
-    std::cout << "N: " << N << std::endl;
+    std::cerr << "N: " << N << std::endl;
 
     const std::size_t M = std::count_if(test_data.cbegin(), test_data.cend(),
         [](const std::string & line) -> bool
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
             return last_val > 1;
         }
     );
-    std::cout << "M: " << M << std::endl;
+    std::cerr << "M: " << M << std::endl;
 
     std::sort(test_data.begin(), test_data.end(),
         [](const std::string & lhs, const std::string & rhs) -> bool
@@ -162,10 +162,10 @@ int main(int argc, char **argv)
             }
         );
 
-    std::cout << "MAX_POINTS: " << MAX_POINTS << std::endl;
-    std::cout << "POINTS: " << POINTS << std::endl;
+    std::cerr << "MAX_POINTS: " << MAX_POINTS << std::endl;
+    std::cerr << "POINTS: " << POINTS << std::endl;
 
-    std::cout << "SCORE: " << (int)std::round(1000000 * POINTS / MAX_POINTS) << std::endl;
+    std::cerr << "SCORE: " << (int)std::round(1000000 * POINTS / MAX_POINTS) << std::endl;
 
     return 0;
 }
