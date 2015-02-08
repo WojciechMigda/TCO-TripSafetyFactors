@@ -73,6 +73,7 @@
 #include <valarray>
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 namespace num
 {
