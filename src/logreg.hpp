@@ -26,10 +26,12 @@
 
 #include "array2d.hpp"
 #include "sigmoid.hpp"
+#include "fmincg.hpp"
 #include <utility>
 #include <valarray>
 #include <cassert>
 #include <functional>
+#include <cmath>
 
 namespace num
 {
@@ -134,10 +136,10 @@ public:
     fit(void) const;
 
     vector_type
-    predict(const vector_type & theta, bool round = true) const;
+    predict(const array_type & X, const vector_type & theta, bool round = true) const;
 
     vector_type
-    predict(vector_type && theta, bool round = true) const;
+    predict(array_type && X, vector_type && theta, bool round = true) const;
 
 private:
     const array_type m_X;
@@ -178,26 +180,26 @@ LogisticRegression<_ValueType>::fit(void) const
         value_type cost;
         vector_type grad(theta.size());
 
-        num::logreg_cost_grad(cost, grad, tcol, theta, this->m_X, this->m_y, (value_type)1.0);
+        num::logreg_cost_grad(cost, grad, tcol, theta, this->m_X, this->m_y, this->m_C);
 
         return std::make_pair(cost, grad);
     };
 
-    vector_type theta = num::fmincg(cost_fn, m_theta0, m_max_iter, false);
+    const vector_type theta = num::fmincg(cost_fn, m_theta0, m_max_iter, true);
 
     return theta;
 }
 
 template<typename _ValueType>
 typename LogisticRegression<_ValueType>::vector_type
-LogisticRegression<_ValueType>::predict(const vector_type & theta, bool round) const
+LogisticRegression<_ValueType>::predict(const array_type & X, const vector_type & theta, bool round) const
 {
-    assert(theta.size() == m_X.shape().second);
-    vector_type H(m_X.shape().first);
+    assert(theta.size() == X.shape().second);
+    vector_type H(X.shape().first);
 
-    for (size_type r{0}; r < m_X.shape().first; ++r)
+    for (size_type r{0}; r < X.shape().first; ++r)
     {
-        H[r] = (m_X[m_X.row(r)] * theta).sum();
+        H[r] = (X[X.row(r)] * theta).sum();
     }
 
     if (round)
@@ -214,7 +216,7 @@ LogisticRegression<_ValueType>::predict(const vector_type & theta, bool round) c
 
 template<typename _ValueType>
 typename LogisticRegression<_ValueType>::vector_type
-LogisticRegression<_ValueType>::predict(vector_type && theta, bool round) const
+LogisticRegression<_ValueType>::predict(array_type && X, vector_type && theta, bool round) const
 {
     return predict(theta, round);
 }
