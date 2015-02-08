@@ -46,6 +46,12 @@ template<typename _Type>
 class array2d
 {
 public:
+    enum class Axis
+    {
+        Row,
+        Column
+    };
+
     typedef _Type value_type;
     typedef std::size_t size_type;
     typedef std::pair<size_type, size_type> shape_type;
@@ -57,6 +63,9 @@ public:
 
     std::slice row(size_type n) const;
     std::slice column(size_type n) const;
+    std::slice stripe(size_type n, enum Axis axis) const;
+
+    std::gslice columns(size_type p, size_type q) const;
 
     std::valarray<value_type> operator[](std::slice slicearr) const;
     std::slice_array<value_type> operator[](std::slice slicearr);
@@ -104,6 +113,22 @@ array2d<_Type>::column(size_type n) const
 
 template<typename _Type>
 inline
+std::gslice
+array2d<_Type>::columns(size_type p, size_type q) const
+{
+    return std::gslice(p, {m_shape.first, q - p + 1}, {m_shape.second, 1});
+}
+
+template<typename _Type>
+inline
+std::slice
+array2d<_Type>::stripe(size_type n, enum Axis axis) const
+{
+    return axis == Axis::Row ? row(n) : column(n);
+}
+
+template<typename _Type>
+inline
 std::valarray<_Type>
 array2d<_Type>::operator[](std::slice slicearr) const
 {
@@ -116,6 +141,22 @@ std::slice_array<_Type>
 array2d<_Type>::operator[](std::slice slicearr)
 {
     return m_varray[slicearr];
+}
+
+template<typename _Type>
+inline
+std::valarray<_Type>
+array2d<_Type>::operator[](const std::gslice & gslicearr) const
+{
+    return m_varray[gslicearr];
+}
+
+template<typename _Type>
+inline
+std::gslice_array<_Type>
+array2d<_Type>::operator[](const std::gslice & gslicearr)
+{
+    return m_varray[gslicearr];
 }
 
 template<typename _Type>
