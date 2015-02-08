@@ -43,7 +43,7 @@ std::vector<int> do_log_reg(
     num::array2d<real_type> && i_X_test
 )
 {
-    std::vector<int> result(i_y_train.size());
+    std::vector<int> result(i_X_test.shape().first);
 
     const num::size_type NUM_FEAT{i_X_train.shape().second + 1};
 
