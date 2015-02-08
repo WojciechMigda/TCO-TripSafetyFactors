@@ -126,7 +126,7 @@ fmincg(
 
     const std::pair<value_type, vector> cost_gradient = cost_gradient_fn(input);
     value_type f1 = cost_gradient.first;
-    df1 = cost_gradient.second;
+    df1 = std::move(cost_gradient.second);
 
     i = i + (maxiter < 0 ? 1 : 0);
     // search direction is steepest
@@ -148,7 +148,7 @@ fmincg(
         input = input + (s * z1);
         const std::pair<value_type, vector> evaluateCost2 = cost_gradient_fn(input);
         value_type f2 = evaluateCost2.first;
-        df2 = evaluateCost2.second;
+        df2 = std::move(evaluateCost2.second);
         i = i + (maxiter < 0 ? 1 : 0); // count epochs
         value_type d2 = (df2 * s).sum();
 
@@ -200,7 +200,7 @@ fmincg(
                 input += (s * z2);
                 std::pair<value_type, vector> evaluateCost3 = cost_gradient_fn(input);
                 f2 = evaluateCost3.first;
-                df2 = evaluateCost3.second;
+                df2 = std::move(evaluateCost3.second);
                 M = M - 1;
                 i = i + (maxiter < 0 ? 1 : 0); // count epochs
                 d2 = (df2 * s).sum();
@@ -268,7 +268,7 @@ fmincg(
             input += (s * z2);
             const std::pair<value_type, vector> evaluateCost3 = cost_gradient_fn(input);
             f2 = evaluateCost3.first;
-            df2 = evaluateCost3.second;
+            df2 = std::move(evaluateCost3.second);
             M = M - 1;
             i = i + (maxiter < 0 ? 1 : 0); // count epochs?!
             d2 = (df2 * s).sum();
