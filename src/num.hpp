@@ -30,6 +30,8 @@
 namespace num
 {
 
+typedef std::size_t size_type;
+
 template<typename _ValueType>
 _ValueType mean(const std::valarray<_ValueType> & vector)
 {

@@ -24,6 +24,7 @@
 #ifndef ARRAY2D_HPP_
 #define ARRAY2D_HPP_
 
+#include "num.hpp"
 #include <cstdlib>
 #include <utility>
 #include <valarray>
@@ -39,7 +40,6 @@
 namespace num
 {
 
-typedef std::size_t size_type;
 typedef std::pair<size_type, size_type> shape_type;
 
 template<typename _Type>
