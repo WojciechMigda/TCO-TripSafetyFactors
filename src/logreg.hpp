@@ -29,6 +29,7 @@
 #include <utility>
 #include <valarray>
 #include <cassert>
+#include <functional>
 
 namespace num
 {
@@ -111,6 +112,111 @@ logreg_cost_grad(
     logreg_cost_grad(cost, grad, temp, theta, X, y, C);
 
     return std::make_pair(cost, grad);
+}
+
+template<typename _ValueType>
+class LogisticRegression
+{
+public:
+    typedef _ValueType value_type;
+    typedef std::valarray<value_type> vector_type;
+    typedef array2d<value_type> array_type;
+
+    LogisticRegression(
+        array_type && X,
+        vector_type && y,
+        vector_type && theta0,
+        value_type C,
+        size_type max_iter
+    );
+
+    vector_type
+    fit(void) const;
+
+    vector_type
+    predict(const vector_type & theta, bool round = true) const;
+
+    vector_type
+    predict(vector_type && theta, bool round = true) const;
+
+private:
+    const array_type m_X;
+    const vector_type m_y;
+    const vector_type m_theta0;
+    const value_type m_C;
+    const size_type m_max_iter;
+};
+
+template<typename _ValueType>
+LogisticRegression<_ValueType>::LogisticRegression(
+    array_type && X,
+    vector_type && y,
+    vector_type && theta0,
+    value_type C,
+    size_type max_iter
+)
+:
+    m_X{std::move(X)},
+    m_y{std::move(y)},
+    m_theta0{m_theta0.size() == m_X.shape().second ? std::move(theta0) : vector_type(m_X.shape().second)},
+    m_C{C},
+    m_max_iter{max_iter}
+{
+}
+
+template<typename _ValueType>
+typename LogisticRegression<_ValueType>::vector_type
+LogisticRegression<_ValueType>::fit(void) const
+{
+    vector_type tcol(m_y.size());
+
+    std::function<std::pair<value_type, vector_type> (vector_type)>
+
+    /* NOTE: Capturing member variables is always done via capturing this */
+    cost_fn = [this, &tcol](const vector_type theta) -> std::pair<value_type, vector_type>
+    {
+        value_type cost;
+        vector_type grad(theta.size());
+
+        num::logreg_cost_grad(cost, grad, tcol, theta, this->m_X, this->m_y, (value_type)1.0);
+
+        return std::make_pair(cost, grad);
+    };
+
+    vector_type theta = num::fmincg(cost_fn, m_theta0, m_max_iter, false);
+
+    return theta;
+}
+
+template<typename _ValueType>
+typename LogisticRegression<_ValueType>::vector_type
+LogisticRegression<_ValueType>::predict(const vector_type & theta, bool round) const
+{
+    assert(theta.size() == m_X.shape().second);
+    vector_type H(m_X.shape().first);
+
+    for (size_type r{0}; r < m_X.shape().first; ++r)
+    {
+        H[r] = (m_X[m_X.row(r)] * theta).sum();
+    }
+
+    if (round)
+    {
+        H = sigmoid(H).apply(std::round);
+    }
+    else
+    {
+        H = sigmoid(H);
+    }
+
+    return H;
+}
+
+template<typename _ValueType>
+typename LogisticRegression<_ValueType>::vector_type
+LogisticRegression<_ValueType>::predict(vector_type && theta, bool round) const
+{
+    return predict(theta, round);
 }
 
 }  // namespace num
