@@ -65,7 +65,7 @@ public:
     std::slice column(size_type n) const;
     std::slice stripe(size_type n, enum Axis axis) const;
 
-    std::gslice columns(size_type p, size_type q) const;
+    std::gslice columns(int p, int q) const;
 
     std::valarray<value_type> operator[](std::slice slicearr) const;
     std::slice_array<value_type> operator[](std::slice slicearr);
@@ -114,9 +114,24 @@ array2d<_Type>::column(size_type n) const
 template<typename _Type>
 inline
 std::gslice
-array2d<_Type>::columns(size_type p, size_type q) const
+array2d<_Type>::columns(int p, int q) const
 {
-    return std::gslice(p, {m_shape.first, q - p + 1}, {m_shape.second, 1});
+    if (p < 0)
+    {
+        assert(-p < m_shape.second);
+        p = m_shape.second + p;
+    }
+    if (q < 0)
+    {
+        assert(-q < m_shape.second);
+        q = m_shape.second + q;
+    }
+
+    return std::gslice(
+        p,
+        {m_shape.first, {q - p + 1u}},
+        {m_shape.second, 1u}
+    );
 }
 
 template<typename _Type>
