@@ -35,6 +35,7 @@
 #include <cstdlib>
 #include <iterator>
 #include <map>
+#include <tuple>
 
 typedef double real_type;
 
@@ -135,15 +136,10 @@ std::vector<int> do_log_reg(
         std::initializer_list<int>
         {
             col::SOURCE,
-            col::CARGO,
             col::PILOT,
-            col::PILOT2,
-
-//            col::START_DAY, // ---
-            col::START_MONTH, // +++
-//            col::START_DAY_OF_MONTH, // ---
-//            col::START_DAY_OF_WEEK, // ---
-//            col::WEATHER
+            col::START_MONTH,
+            col::CYCLES,
+            col::PILOT_EXP,
         }
     )
     {
@@ -170,7 +166,12 @@ std::vector<int> do_log_reg(
     }
 
 
-    vector_type y_train = i_y_train.apply([](real_type v){return v > 1.0 ? 1.0 : v;});
+    vector_type y_train = i_y_train.apply(
+        [](real_type v)
+        {
+            return v > 1.0 ? 1.0 : v;
+        }
+    );
 
     vector_type theta(0.0, X_train.shape().second);
 
@@ -194,7 +195,7 @@ std::vector<int> do_log_reg(
         num::LogisticRegression<real_type>::array_type{X_train},
         num::LogisticRegression<real_type>::vector_type{y_train},
         num::LogisticRegression<real_type>::vector_type{theta},
-        0.03,
+        0.02,
         200
     );
 
@@ -208,25 +209,40 @@ std::vector<int> do_log_reg(
 
     std::vector<int> result(i_X_test.shape().first);
 
-    std::vector<std::pair<num::size_type, real_type>> zipped;
+    std::vector<std::tuple<num::size_type, num::size_type, real_type>> zipped;
     zipped.reserve(pred.size());
 
     for (num::size_type idx = 0; idx < pred.size(); ++idx)
     {
-        zipped.push_back(std::pair<num::size_type, real_type>(idx + 1, pred[idx]));
+        zipped.emplace_back(idx + 1, 0, pred[idx]);
     }
     std::sort(zipped.begin(), zipped.end(),
-        [](const std::pair<num::size_type, real_type> & p, const std::pair<num::size_type, real_type> & q)
+        [](const std::tuple<num::size_type, num::size_type, real_type> & p, const std::tuple<num::size_type, num::size_type, real_type> & q)
         {
-        return p.second > q.second;
+            return std::get<2>(p) > std::get<2>(q);
+        }
+    );
+    for (num::size_type idx = 0; idx < pred.size(); ++idx)
+    {
+        std::get<1>(zipped[idx]) = idx + 1;
+    }
+    std::sort(zipped.begin(), zipped.end(),
+        [](const std::tuple<num::size_type, num::size_type, real_type> & p, const std::tuple<num::size_type, num::size_type, real_type> & q)
+        {
+            return std::get<0>(p) < std::get<0>(q);
         }
     );
     std::transform(zipped.cbegin(), zipped.cend(), result.begin(),
-        [](const std::pair<num::size_type, real_type> & p)
+        [](const std::tuple<num::size_type, num::size_type, real_type> & p)
         {
-        return (int)p.first;
+            return (int)std::get<1>(p);
         }
     );
+
+    std::copy(result.cbegin(), result.cbegin() + 10, std::ostream_iterator<int>(std::cerr, " "));
+    std::cerr << std::endl;
+    std::copy(result.cend() - 10, result.cend(), std::ostream_iterator<int>(std::cerr, " "));
+    std::cerr << std::endl;
 
     return result;
 }
@@ -302,7 +318,7 @@ TripSafetyFactors::predict(
         long int result = std::strtol(str, &next, 10) * 60;
         if (*next == ':')
         {
-            result += std::strtol(next + 1, nullptr, 10);
+//            result += std::strtol(next + 1, nullptr, 10);
         }
         return result;
     };
