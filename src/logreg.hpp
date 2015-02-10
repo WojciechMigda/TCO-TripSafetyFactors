@@ -185,7 +185,7 @@ LogisticRegression<_ValueType>::fit(void) const
         return std::make_pair(cost, grad);
     };
 
-    const vector_type theta = num::fmincg(cost_fn, m_theta0, m_max_iter, true);
+    const vector_type theta = num::fmincg(cost_fn, m_theta0, m_max_iter, false);
 
     return theta;
 }
