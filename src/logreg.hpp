@@ -79,7 +79,7 @@ logreg_cost_grad(
     //    sigma_i = -y' * log(H) - (1 - y') * log(1 - H);
     const value_type Sigma = -(y * std::log(H)).sum() - (((value_type)1.0 - y) * std::log((value_type)1.0 - H)).sum();
     //    J = sigma_i / m + sum(theta_for_reg.^2) / (2 * C * m);
-    out_cost = (theta[std::slice(1, X_shape.second - 1, 1)] * theta[std::slice(1, X_shape.second - 1, 1)]).sum() / (2.0 * C * X_shape.first);
+    out_cost = ((theta * theta).sum() - theta[0] * theta[0]) / (2.0 * C * X_shape.first);
     out_cost += Sigma / X_shape.first;
 
     //    grad += (H - y)' * X;
@@ -218,7 +218,7 @@ template<typename _ValueType>
 typename LogisticRegression<_ValueType>::vector_type
 LogisticRegression<_ValueType>::predict(array_type && X, vector_type && theta, bool round) const
 {
-    return predict(theta, round);
+    return predict(X, theta, round);
 }
 
 }  // namespace num
